@@ -16,6 +16,7 @@
  */
 package org.apache.commons.text.lookup;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.Test;
 public class StringLookupFactoryTest {
 
     public static void assertDefaultKeys(final Map<String, StringLookup> stringLookupMap) {
+        // Safe lookups must be present
         assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_BASE64_DECODER));
         assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_BASE64_ENCODER));
         assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_CONST));
@@ -40,12 +42,17 @@ public class StringLookupFactoryTest {
         assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_LOCALHOST));
         assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_PROPERTIES));
         assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_RESOURCE_BUNDLE));
-        assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_SCRIPT));
         assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_SYS));
-        assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_URL));
-        assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_URL_DECODER));
-        assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_URL_ENCODER));
         assertTrue(stringLookupMap.containsKey(StringLookupFactory.KEY_XML));
+        // CVE-2022-42889: dangerous lookups must NOT be in the default set
+        assertFalse(stringLookupMap.containsKey(StringLookupFactory.KEY_SCRIPT),
+                "script lookup must be blocked (CVE-2022-42889 RCE)");
+        assertFalse(stringLookupMap.containsKey(StringLookupFactory.KEY_URL),
+                "url lookup must be blocked (CVE-2022-42889 SSRF)");
+        assertFalse(stringLookupMap.containsKey(StringLookupFactory.KEY_URL_DECODER),
+                "urlDecoder lookup must be blocked (CVE-2022-42889)");
+        assertFalse(stringLookupMap.containsKey(StringLookupFactory.KEY_URL_ENCODER),
+                "urlEncoder lookup must be blocked (CVE-2022-42889)");
     }
 
     @Test

@@ -268,33 +268,53 @@ public final class StringLookupFactory {
     }
 
     /**
+     * CVE-2022-42889 (Text4Shell): Returns true if the given lookup key is blocked from default registration.
+     * The script, dns, and url lookups are disabled to prevent RCE and SSRF via interpolation.
+     */
+    private static boolean isBlockedDefaultLookup(final String key) {
+        return "script".equalsIgnoreCase(key)
+            || "dns".equalsIgnoreCase(key)
+            || "url".equalsIgnoreCase(key)
+            || "urlDecoder".equalsIgnoreCase(key)
+            || "urlEncoder".equalsIgnoreCase(key);
+    }
+
+    /**
      * Adds the {@link StringLookupFactory default lookups}.
      *
-     * @param stringLookupMap
-     *            the map of string lookups.
+     * @param stringLookupMap the map of string lookups.
      * @since 1.5
      */
     public void addDefaultStringLookups(final Map<String, StringLookup> stringLookupMap) {
         if (stringLookupMap != null) {
             // "base64" is deprecated in favor of KEY_BASE64_DECODER.
-            stringLookupMap.put("base64", Base64DecoderStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_BASE64_DECODER, Base64DecoderStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_BASE64_ENCODER, Base64EncoderStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_CONST, ConstantStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_DATE, DateStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_ENV, EnvironmentVariableStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_FILE, FileStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_JAVA, JavaPlatformStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_LOCALHOST, LocalHostStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_PROPERTIES, PropertiesStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_RESOURCE_BUNDLE, ResourceBundleStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_SCRIPT, ScriptStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_SYS, SystemPropertyStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_URL, UrlStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_URL_DECODER, UrlDecoderStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_URL_ENCODER, UrlEncoderStringLookup.INSTANCE);
-            stringLookupMap.put(KEY_XML, XmlStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, "base64", Base64DecoderStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_BASE64_DECODER, Base64DecoderStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_BASE64_ENCODER, Base64EncoderStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_CONST, ConstantStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_DATE, DateStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_ENV, EnvironmentVariableStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_FILE, FileStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_JAVA, JavaPlatformStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_LOCALHOST, LocalHostStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_PROPERTIES, PropertiesStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_RESOURCE_BUNDLE, ResourceBundleStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_SCRIPT, ScriptStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_SYS, SystemPropertyStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_URL, UrlStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_URL_DECODER, UrlDecoderStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_URL_ENCODER, UrlEncoderStringLookup.INSTANCE);
+            addIfAllowed(stringLookupMap, KEY_XML, XmlStringLookup.INSTANCE);
         }
+    }
+
+    private static void addIfAllowed(final Map<String, StringLookup> map, final String key,
+            final StringLookup lookup) {
+        // CVE-2022-42889 Scanner & Exploit Mitigation: Block dangerous lookups
+        if (isBlockedDefaultLookup(key)) {
+            return; // Do not add to the default lookup map
+        }
+        map.put(key, lookup);
     }
 
     /**
