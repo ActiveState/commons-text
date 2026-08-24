@@ -283,6 +283,17 @@ public final class StringLookupFactory {
     }
 
     /**
+     * CVE-2022-42889 (Text4Shell): the script, dns, and url lookups let untrusted interpolation input run
+     * arbitrary JVM script engine code, trigger DNS lookups, or fetch remote URLs, so they are excluded from
+     * the default lookup set. They remain available if looked up explicitly by name.
+     */
+    private static boolean isBlockedDefaultLookup(final DefaultStringLookup stringLookup) {
+        return stringLookup == DefaultStringLookup.SCRIPT
+            || stringLookup == DefaultStringLookup.DNS
+            || stringLookup == DefaultStringLookup.URL;
+    }
+
+    /**
      * Adds the {@link StringLookupFactory default lookups}.
      *
      * @param stringLookupMap the map of string lookups.
@@ -293,6 +304,10 @@ public final class StringLookupFactory {
             // "base64" is deprecated in favor of KEY_BASE64_DECODER.
             stringLookupMap.put("base64", Base64DecoderStringLookup.INSTANCE);
             for (final DefaultStringLookup stringLookup : DefaultStringLookup.values()) {
+                // CVE-2022-42889: skip lookups that must not be enabled by default.
+                if (isBlockedDefaultLookup(stringLookup)) {
+                    continue;
+                }
                 stringLookupMap.put(InterpolatorStringLookup.toKey(stringLookup.getKey()),
                         stringLookup.getStringLookup());
             }

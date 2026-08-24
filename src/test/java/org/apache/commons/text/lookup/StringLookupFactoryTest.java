@@ -16,6 +16,7 @@
  */
 package org.apache.commons.text.lookup;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
@@ -34,7 +35,6 @@ public class StringLookupFactoryTest {
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_BASE64_ENCODER)));
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_CONST)));
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_DATE)));
-        assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_DNS)));
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_ENV)));
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_FILE)));
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_JAVA)));
@@ -42,12 +42,14 @@ public class StringLookupFactoryTest {
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_PROPERTIES)));
         assertTrue(
                 stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_RESOURCE_BUNDLE)));
-        assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_SCRIPT)));
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_SYS)));
-        assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_URL)));
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_URL_DECODER)));
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_URL_ENCODER)));
         assertTrue(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_XML)));
+        // CVE-2022-42889: these lookups must not be registered by default.
+        assertFalse(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_DNS)));
+        assertFalse(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_SCRIPT)));
+        assertFalse(stringLookupMap.containsKey(InterpolatorStringLookup.toKey(StringLookupFactory.KEY_URL)));
     }
 
     @Test
